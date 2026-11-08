@@ -1,0 +1,121 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="Texture2D" path="res://assets/icon.svg" id="2_icon"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_target"]
+bg_color = Color(0.125, 0.161, 0.145, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_hover"]
+bg_color = Color(0.18, 0.24, 0.21, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_pressed"]
+bg_color = Color(0.12, 0.34, 0.26, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_focus"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.22, 0.54, 0.8, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="Center" type="CenterContainer" parent="Margin"]
+layout_mode = 2
+
+[node name="Content" type="VBoxContainer" parent="Margin/Center"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Title" type="Label" parent="Margin/Center/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.125, 0.161, 0.145, 1)
+theme_override_font_sizes/font_size = 32
+text = "Tiny Ritual"
+horizontal_alignment = 1
+
+[node name="Status" type="Label" parent="Margin/Center/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.32, 0.4, 0.36, 1)
+theme_override_font_sizes/font_size = 16
+text = "INPUT CHECK"
+horizontal_alignment = 1
+
+[node name="Target" type="Button" parent="Margin/Center/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 200)
+layout_mode = 2
+tooltip_text = "Count a press"
+mouse_default_cursor_shape = 2
+theme_override_constants/icon_max_width = 128
+theme_override_styles/normal = SubResource("StyleBox_target")
+theme_override_styles/hover = SubResource("StyleBox_hover")
+theme_override_styles/pressed = SubResource("StyleBox_pressed")
+theme_override_styles/focus = SubResource("StyleBox_focus")
+icon = ExtResource("2_icon")
+icon_alignment = 1
+expand_icon = true
+
+[node name="Count" type="Label" parent="Margin/Center/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.125, 0.161, 0.145, 1)
+theme_override_font_sizes/font_size = 48
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Reset" type="Button" parent="Margin/Center/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.125, 0.161, 0.145, 1)
+theme_override_colors/font_hover_color = Color(0.12, 0.34, 0.26, 1)
+theme_override_colors/font_pressed_color = Color(0.12, 0.34, 0.26, 1)
+theme_override_colors/font_focus_color = Color(0.125, 0.161, 0.145, 1)
+theme_override_colors/font_disabled_color = Color(0.48, 0.53, 0.5, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/focus = SubResource("StyleBox_focus")
+text = "Reset"
+flat = true
+disabled = true

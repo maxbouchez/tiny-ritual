@@ -1,0 +1,125 @@
+name: Build, deploy, and release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install pinned Godot and templates
+        run: ./tools/setup.ps1 -Templates
+      - name: Import and test
+        env:
+          TINY_RITUAL_RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+        run: ./tools/godot.ps1 -Action Test
+      - name: Export browser build
+        run: ./tools/godot.ps1 -Action Export -Target Web
+      - name: Export Windows build
+        run: ./tools/godot.ps1 -Action Export -Target Windows
+      - name: Bundle engine license notices
+        run: |
+          $version = (Get-Content .godot-version -Raw).Trim()
+          foreach ($notice in @('LICENSE.txt', 'COPYRIGHT.txt')) {
+            Invoke-WebRequest "https://raw.githubusercontent.com/godotengine/godot/$version-stable/$notice" -OutFile "build/windows/Godot-$notice"
+            Copy-Item "build/windows/Godot-$notice" "build/web/Godot-$notice"
+          }
+      - name: Upload browser build
+        uses: actions/upload-artifact@v4
+        with:
+          name: tiny-ritual-web
+          path: build/web/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: tiny-ritual-windows
+          path: build/windows/
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: tiny-ritual-web
+          path: build/web
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+      - name: Deploy browser build
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v') && github.event_name == 'push'
+    needs: build
+    runs-on: windows-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: tiny-ritual-web
+          path: build/web
+      - uses: actions/download-artifact@v4
+        with:
+          name: tiny-ritual-windows
+          path: build/windows
+      - name: Package downloads
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          New-Item -ItemType Directory -Path dist | Out-Null
+          Compress-Archive -Path build/windows/* -DestinationPath "dist/TinyRitual-$env:RELEASE_TAG-windows-x64.zip"
+          Compress-Archive -Path build/web/* -DestinationPath "dist/TinyRitual-$env:RELEASE_TAG-web.zip"
+          Get-ChildItem dist/*.zip | ForEach-Object {
+            $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $($_.Name)"
+          } | Set-Content dist/SHA256SUMS.txt -Encoding ascii
+      - name: Publish versioned release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          $assets = @(Get-ChildItem dist -File | Select-Object -ExpandProperty FullName)
+          gh release create $env:RELEASE_TAG @assets --verify-tag --title "Tiny Ritual $env:RELEASE_TAG" --generate-notes --notes "Windows: extract the Windows ZIP and run TinyRitual.exe. Browser: play at https://maxbouchez.github.io/tiny-ritual/ (latest main build), or host the versioned web ZIP over HTTP/HTTPS. Native Android and iOS packages are not included yet."
+          if ($LASTEXITCODE -ne 0) { throw 'Release publication failed.' }

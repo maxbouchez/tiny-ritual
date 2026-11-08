@@ -1,0 +1,13 @@
+.godot/
+.tools/
+build/
+export_credentials.cfg
+*.keystore
+*.jks
+*.p12
+*.mobileprovision
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db

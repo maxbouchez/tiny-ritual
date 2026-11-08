@@ -1,0 +1,5 @@
+{
+  "files.exclude": { ".godot": true, ".tools": true },
+  "search.exclude": { ".godot": true, ".tools": true, "build": true },
+  "[gdscript]": { "editor.insertSpaces": false, "editor.tabSize": 4 }
+}

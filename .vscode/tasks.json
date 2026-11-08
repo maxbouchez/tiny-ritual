@@ -1,0 +1,48 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Godot: Open Editor",
+      "type": "process",
+      "command": "pwsh",
+      "windows": { "command": "powershell.exe" },
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/tools/godot.ps1", "-Action", "Editor"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Godot: Run",
+      "type": "process",
+      "command": "pwsh",
+      "windows": { "command": "powershell.exe" },
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/tools/godot.ps1", "-Action", "Run"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Godot: Test",
+      "type": "process",
+      "command": "pwsh",
+      "windows": { "command": "powershell.exe" },
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/tools/godot.ps1", "-Action", "Test"],
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Godot: Export",
+      "type": "process",
+      "command": "pwsh",
+      "windows": { "command": "powershell.exe" },
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/tools/godot.ps1", "-Action", "Export", "-Target", "${input:exportTarget}"],
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "exportTarget",
+      "type": "pickString",
+      "description": "Export platform (Android needs SDK/JDK; iOS needs macOS/Xcode)",
+      "options": ["Web", "Windows", "Android", "iOS"],
+      "default": "Web"
+    }
+  ]
+}
